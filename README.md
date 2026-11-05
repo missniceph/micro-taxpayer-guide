@@ -96,7 +96,7 @@ In `js/config.js`:
 
 | Setting | What's missing |
 |---|---|
-| `privacyContactEmail` | Your contact email for deletion requests. Until filled, the privacy notice shows "[Contact email to be added]" |
+| `privacyContactEmail` | Done: delacruzcrystaleunice@gmail.com. Change it here if needed |
 
 Tip: in `js/app.js`, search for `TBC` to find the checklist lines.
 

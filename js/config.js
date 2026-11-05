@@ -26,6 +26,5 @@ window.SIGNUP_CONFIG = {
   consentLabel: "I agree to receive emails from Nice to Know (@missniceph) about this guide and tax deadlines. I can unsubscribe anytime.",
 
   // Shown in the privacy notice for deletion requests.
-  // Replace with your contact email.
-  privacyContactEmail: "PLACEHOLDER_CONTACT_EMAIL"
+  privacyContactEmail: "delacruzcrystaleunice@gmail.com"
 };
