@@ -299,3 +299,8 @@ strong { font-weight: 650; }
   body { background: #fff; color: #000; }
 }
 main:focus { outline: none; }
+
+/* Paid worksheets box */
+.worksheets { border: 1px solid var(--line); }
+.worksheets h3 { margin-top: 2px; }
+.pill.paid { background: var(--accent-soft); color: var(--text); border: 1px solid var(--accent); }

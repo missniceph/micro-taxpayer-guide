@@ -28,3 +28,43 @@ window.SIGNUP_CONFIG = {
   // Shown in the privacy notice for deletion requests.
   privacyContactEmail: "delacruzcrystaleunice@gmail.com"
 };
+
+/* =====================================================================
+   PAID PRACTICE WORKSHEETS (optional)
+   ---------------------------------------------------------------------
+   Shows a small "Paid" box on the result page that links to YOUR order
+   form (a Google Form, or any checkout/shop link). The guide stays free.
+
+   The box stays HIDDEN until both orderUrl and price are filled in.
+   Nothing from the checker is sent to the order form; it's a plain link.
+
+   Steps in README.md, "Paid practice worksheets".
+   ===================================================================== */
+
+window.WORKSHEETS_CONFIG = {
+  // Your Google Form's share link (ends in /viewform) or a checkout link.
+  orderUrl: "https://forms.gle/JdGz7NXfn9VbrR6L6",
+
+  // One-time price as you want it shown, e.g. "₱199".
+  price: "PLACEHOLDER_PRICE",
+
+  // Show the box only to individuals (the ITR and 1701Q are for individuals).
+  individualsOnly: true,
+
+  title: "Practice worksheets for your ITR and quarterly filing",
+
+  // What's inside. Edit to match your actual worksheets.
+  includes: [
+    "PLACEHOLDER: what's included (e.g. annual ITR practice worksheet)",
+    "PLACEHOLDER: what's included (e.g. quarterly filing practice worksheet)"
+  ],
+
+  // How ordering works. Edit to match your process.
+  steps: [
+    "Fill in the short order form.",
+    "We email you the payment details.",
+    "Once your payment is confirmed, we email you the worksheets."
+  ],
+
+  buttonLabel: "Order the worksheets"
+};

@@ -13,7 +13,7 @@ A free, mobile-first guide by **Nice to Know ([@missniceph](https://instagram.co
 | File | What it is | When to edit it |
 |---|---|---|
 | `js/facts.js` | **Every** fact, source, deadline and FAQ answer on the site | Whenever a rule, date or source changes. **This is the main file.** |
-| `js/config.js` | Google Form settings for the email sign-up, and your privacy contact email | Only if you make a new form or change your contact email |
+| `js/config.js` | Google Form settings for the email sign-up, your privacy contact email, and the paid worksheets box | If you change a form, your contact email, or the worksheets offer |
 | `index.html` | Page layout, intro wording, page title and share-preview text | To change the intro, title or share text |
 | `js/app.js` | Checker logic: which facts to show for which answers, and the checklist lines | Rarely (see the placeholder list below) |
 | `css/styles.css` | Colors and layout, light and dark mode | Rarely |
@@ -28,6 +28,7 @@ A free, mobile-first guide by **Nice to Know ([@missniceph](https://instagram.co
 - **New year:** see "How to update deadlines next year" below.
 - **Abatement deadline extended:** see "The abatement countdown" below.
 - **New Google Form:** see "Connect or change the email sign-up" below.
+- **Paid worksheets:** see "Paid practice worksheets" below.
 
 Edit on GitHub: open the file, tap the ✏️ pencil, make the change, then tap **Commit changes**. The live site updates in a minute or two.
 
@@ -109,6 +110,9 @@ In `js/config.js`:
 | Setting | What's missing |
 |---|---|
 | `privacyContactEmail` | Done: delacruzcrystaleunice@gmail.com. Change it here if needed |
+| `WORKSHEETS_CONFIG.orderUrl` | Done: https://forms.gle/JdGz7NXfn9VbrR6L6 |
+| `WORKSHEETS_CONFIG.price` | Worksheet price, e.g. "₱199" (box hidden until set) |
+| `WORKSHEETS_CONFIG.includes` | What's in the worksheets (placeholder lines are hidden) |
 
 Tip: in `js/app.js`, search for `TBC` to find the checklist lines.
 
@@ -177,6 +181,33 @@ To turn the sign-up off temporarily, set `formResponseUrl` to `"PLACEHOLDER_FORM
 
 ---
 
+## Paid practice worksheets
+
+The guide is free. The worksheets are an optional paid extra, shown as a small box on the result page after the free checklist and email sign-up. It only shows for individuals, since the ITR and 1701Q worksheets are for individuals.
+
+**It stays hidden until you fill in `orderUrl` and `price` in `js/config.js`** (in the `WORKSHEETS_CONFIG` part at the bottom).
+
+1. **Make an order form** in Google Forms (separate from the email sign-up form). Suggested questions:
+   - Full name
+   - Email
+   - Preferred payment method (e.g. GCash, Maya)
+   - A consent checkbox, e.g. "I agree to be contacted by Nice to Know (@missniceph) about my order."
+
+   In the form description, add a short privacy note: what you collect, why, that it's never sold or shared, and how to ask for deletion. Don't add a file-upload question. It forces people to sign in to Google.
+2. **Copy the form's share link** (it ends in `/viewform`) into `orderUrl`.
+3. **Set `price`**, e.g. `"₱199"`. It shows as "Paid · ₱199 one-time" and on the button.
+4. **Edit `includes`** to list what's actually in the worksheets. Lines still starting with `PLACEHOLDER` are hidden.
+5. **Check `steps`** matches how you handle orders. The default is: fill in the form → we email payment details → we email the worksheets once paid.
+6. Commit, then test it on the live site.
+
+How it works: the button simply opens your form in a new tab. Nothing from the checker is sent. Payment and delivery happen outside the site, by email. To switch to a shop or checkout page later, put that link in `orderUrl` instead.
+
+To show the box to corporations too, set `individualsOnly: false`. To hide the box again, set `orderUrl` back to `"PLACEHOLDER_ORDER_FORM_URL"`.
+
+> Keep the worksheets consistent with the guide: wait until the [To confirm] items (percentage tax, the 8% option and the ₱250,000 rule) are confirmed, and include the "General information only, not tax advice" disclaimer.
+
+---
+
 ## Share preview and icons
 
 When someone shares the link on Facebook, Messenger, Viber or X, they see `assets/og-image.png` with the title and description from the `og:` lines in `index.html`.
@@ -216,8 +247,13 @@ node tests/check-signup.js
 node tests/check-features.js
 ```
 
+```bash
+node tests/check-worksheets.js
+```
+
 - `check-all-paths.js` clicks through every combination of checker answers (540 paths) at phone (360px), tablet (768px) and laptop (1280px) widths. It checks each result for missing sections, unsourced facts, layout overflow, errors and unexpected network requests.
 - `check-signup.js` checks the sign-up form's validation and confirms that only email and consent are sent. It intercepts the request, so nothing reaches your real form.
+- `check-worksheets.js` checks the paid worksheets box: hidden until configured, individuals only, and a plain link with no checker answers.
 - `check-features.js` checks the buttons and edge cases: Back (on the page and the phone's own Back button), Change my answers, Start over, double-taps, the theme and language buttons, copying the checklist, the FAQ, and keyboard use.
 
 ---

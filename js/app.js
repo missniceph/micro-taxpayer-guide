@@ -8,6 +8,7 @@
 
   const { TBC, AS_OF, SOURCES, F, ABATEMENT_DEADLINE, DEADLINES, FAQ } = window.FACTS;
   const CFG = window.SIGNUP_CONFIG || {};
+  const WS = window.WORKSHEETS_CONFIG || {};
   const $ = (sel, root) => (root || document).querySelector(sel);
 
   /* ---------------- Helpers ---------------- */
@@ -572,6 +573,9 @@
     // 7. Email sign-up
     html += signupHtml();
 
+    // 8. Paid practice worksheets (optional, hidden until configured)
+    html += worksheetsHtml(s);
+
     html += '<div class="disclaimer" role="note"><strong>General information only, not tax advice.</strong> Confirm with your Revenue District Office (RDO) or a tax professional. <span class="asof">As of ' + esc(AS_OF) + ".</span></div>";
     html += '<div class="cta-row"><button type="button" class="btn btn-ghost" id="changeBtn">← Change my answers</button><button type="button" class="btn btn-ghost" id="restartBtn">↺ Start over</button><a class="btn btn-link" href="#deadlines">See all deadlines</a></div>';
 
@@ -635,6 +639,27 @@
   /* ---------------- Email sign-up ---------------- */
 
   const isPlaceholder = v => !v || /PLACEHOLDER/i.test(v);
+
+  /* ---------------- Paid worksheets (link out) ---------------- */
+
+  function worksheetsHtml(s) {
+    if (isPlaceholder(WS.orderUrl) || isPlaceholder(WS.price) || !/^https:\/\//.test(WS.orderUrl)) return "";
+    if (WS.individualsOnly && s.entity !== "individual") return "";
+    const list = (arr, tag) => {
+      const items = (arr || []).filter(x => !isPlaceholder(x));
+      return items.length ? "<" + tag + ' class="condlist">' + items.map(x => "<li>" + esc(x) + "</li>").join("") + "</" + tag + ">" : "";
+    };
+    return '<section class="card r-block worksheets" aria-labelledby="wsTitle">' +
+      '<span class="pill paid">Paid · ' + esc(WS.price) + " one-time</span>" +
+      '<h3 id="wsTitle">' + esc(WS.title || "Practice worksheets") + "</h3>" +
+      "<p>Want to practise before you file? This is optional. The guide and your result stay free.</p>" +
+      list(WS.includes, "ul") +
+      (list(WS.steps, "ol") ? "<h4>How ordering works</h4>" + list(WS.steps, "ol") : "") +
+      '<a class="btn btn-primary btn-lg continue" id="wsBtn" href="' + esc(WS.orderUrl) + '" target="_blank" rel="noopener">' +
+      esc(WS.buttonLabel || "Order the worksheets") + " (" + esc(WS.price) + ') <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>' +
+      '<p class="fine">Opens the order form in a new tab. Your checker answers are not shared with it. Practice worksheets are general information only, not tax advice.</p>' +
+      "</section>";
+  }
   function signupConfigured() {
     return !isPlaceholder(CFG.formResponseUrl) && CFG.entries &&
       !isPlaceholder(CFG.entries.email) && !isPlaceholder(CFG.entries.consent) && !isPlaceholder(CFG.consentValue) &&
