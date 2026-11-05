@@ -127,7 +127,7 @@ window.FACTS = (function () {
   const DEADLINES = {
     year: 2026,
     dates: [
-      { date: "2026-04-25", title: "BIR Form 2551Q, Q1", note: "Quarterly percentage tax (example given: 25th day after Q1 ends).", src: [TBC] },
+      { date: "2026-04-25", title: "BIR Form 2551Q, Q1", note: "Quarterly percentage tax. Due on the 25th day after the quarter ends.", src: [TBC] },
       { date: "2026-05-15", title: "BIR Form 1701Q, Q1", note: "Quarterly income tax for individuals.", src: [TBC] },
       { date: "2026-05-15", title: "Annual ITR for taxable year 2025", note: "Extended from April 15. Past example only.", src: ["RMC 30-2026"] },
       { date: "2026-08-15", title: "BIR Form 1701Q, Q2", note: "Quarterly income tax for individuals.", src: [TBC] },

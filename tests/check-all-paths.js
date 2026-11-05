@@ -1,4 +1,4 @@
-/* Clicks through EVERY path of the checker at phone and laptop sizes.
+/* Clicks through EVERY path of the checker at phone, tablet and laptop sizes.
    Usage:
      python3 -m http.server 8765      (in the repo folder, separate terminal)
      node tests/check-all-paths.js    (needs Playwright installed)
@@ -10,6 +10,7 @@ const BASE = process.env.BASE_URL || "http://localhost:8765/";
 const SHOTS = process.env.SHOTS || "";
 const VIEWPORTS = [
   { name: "phone", width: 360, height: 740 },
+  { name: "tablet", width: 768, height: 1024 },
   { name: "laptop", width: 1280, height: 800 }
 ].filter(v => !process.env.VP || v.name === process.env.VP);
 const WHO = [
