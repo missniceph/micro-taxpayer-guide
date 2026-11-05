@@ -12,7 +12,8 @@
   --primary: #0f6b5c;
   --primary-ink: #ffffff;
   --primary-soft: #dcefe9;
-  --accent: #e0703f;
+  --accent: #b5491b;
+  --accent-ink: #ffffff;
   --accent-soft: #fde6d9;
   --warn-bg: #fff4d6;
   --warn-line: #e8c463;
@@ -43,6 +44,7 @@
     --primary-ink: #0d1f1b;
     --primary-soft: #1f3a34;
     --accent: #f29a6d;
+    --accent-ink: #2a160b;
     --accent-soft: #3d2a20;
     --warn-bg: #3a3017;
     --warn-line: #8a7230;
@@ -70,6 +72,7 @@
   --primary-ink: #0d1f1b;
   --primary-soft: #1f3a34;
   --accent: #f29a6d;
+  --accent-ink: #2a160b;
   --accent-soft: #3d2a20;
   --warn-bg: #3a3017;
   --warn-line: #8a7230;
@@ -113,7 +116,7 @@ strong { font-weight: 650; }
 [hidden] { display: none !important; }
 
 /* ---------- Top bar ---------- */
-.topbar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.topbar { background: var(--bg); position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 60px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); min-width: 0; }
 .brand-mark { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: var(--primary-ink); font-weight: 800; }
@@ -163,10 +166,8 @@ strong { font-weight: 650; }
 .disclaimer .asof { white-space: nowrap; color: var(--warn-ink); font-weight: 600; }
 
 /* ---------- Countdown ---------- */
-.countdown-banner { display: flex; align-items: center; gap: 14px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: var(--radius); padding: 14px 16px; margin: 14px 0 0; }
-.countdown-banner .cd-num { flex: none; display: grid; place-items: center; min-width: 74px; padding: 6px 8px; border-radius: 12px; background: var(--accent); color: #fff; text-align: center; line-height: 1.05; }
-:root[data-theme="dark"] .countdown-banner .cd-num { color: #2a160b; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .countdown-banner .cd-num { color: #2a160b; } }
+.countdown-banner { display: flex; align-items: center; gap: 14px; background: var(--accent-soft); border: 1px solid var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: var(--radius); padding: 14px 16px; margin: 14px 0 0; }
+.countdown-banner .cd-num { flex: none; display: grid; place-items: center; min-width: 74px; padding: 6px 8px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); text-align: center; line-height: 1.05; }
 .cd-num b { font-size: 1.7rem; }
 .cd-num small { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .countdown-banner p { margin: 0; font-size: .95rem; }
@@ -221,7 +222,7 @@ strong { font-weight: 650; }
 .pill.no { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
 .steps { counter-reset: s; list-style: none; padding: 0; margin: 10px 0; }
 .steps li { counter-increment: s; position: relative; padding-left: 42px; margin-bottom: 12px; }
-.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 800; font-size: .9rem; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: .9rem; }
 .condlist { margin: 8px 0 12px; padding-left: 1.2em; }
 .condlist li { margin-bottom: 4px; }
 
@@ -238,7 +239,6 @@ strong { font-weight: 650; }
 .signup { border: 2px dashed var(--primary); }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-weight: 650; margin-bottom: 6px; }
-.field .opt-tag { font-weight: 400; color: var(--muted); font-size: .88rem; }
 .field input[type="text"], .field input[type="email"] { width: 100%; min-height: 50px; padding: 10px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); color: var(--text); font: inherit; }
 .field input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
 .field input[aria-invalid="true"] { border-color: var(--bad); }
@@ -256,7 +256,8 @@ strong { font-weight: 650; }
 /* ---------- Deadlines ---------- */
 .timeline { list-style: none; padding: 0; margin: 16px 0 24px; }
 .timeline li { display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 10px; }
-.timeline li.past { opacity: .62; }
+.timeline li.past { background: var(--surface-2); border-style: dashed; }
+.timeline li.past .dl-date { background: var(--surface); }
 .timeline li.next { border: 2px solid var(--accent); }
 .dl-date { text-align: center; border-radius: 10px; background: var(--primary-soft); padding: 6px 4px; line-height: 1.1; align-self: start; }
 .dl-date small { display: block; font-size: .72rem; font-weight: 800; text-transform: uppercase; color: var(--primary); }
@@ -265,7 +266,7 @@ strong { font-weight: 650; }
 .dl-body p { margin: 0; font-size: .93rem; color: var(--muted); }
 .status { display: inline-block; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; border-radius: 99px; padding: 2px 8px; margin-left: 4px; vertical-align: 2px; }
 .status.past { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
-.status.next { background: var(--accent); color: #fff; }
+.status.next { background: var(--accent); color: var(--accent-ink); }
 .status.soon { background: var(--primary-soft); color: var(--primary); }
 .h-small { font-size: 1.05rem; margin-top: 8px; }
 .rules { padding-left: 1.2em; }
@@ -297,3 +298,4 @@ strong { font-weight: 650; }
   .topbar, .checker, .signup, .toggles, .countdown-banner, .toast, .cta-row { display: none !important; }
   body { background: #fff; color: #000; }
 }
+main:focus { outline: none; }

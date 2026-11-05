@@ -8,16 +8,28 @@ A free, mobile-first guide by **Nice to Know ([@missniceph](https://instagram.co
 
 ---
 
-## What's in this folder
+## What's here and how to update it
 
-| File | What it is | Do you edit it? |
+| File | What it is | When to edit it |
 |---|---|---|
-| `js/facts.js` | **Every** fact, source, deadline and FAQ on the site | **Yes** — this is the main file |
-| `js/config.js` | Google Form settings for the email sign-up | Yes, if you change the form |
-| `index.html` | Page layout and the intro wording | Rarely |
-| `js/app.js` | Checker logic (which facts to show for which answers) | Rarely |
-| `css/styles.css` | Colours and layout (light and dark mode) | Rarely |
+| `js/facts.js` | **Every** fact, source, deadline and FAQ answer on the site | Whenever a rule, date or source changes. **This is the main file.** |
+| `js/config.js` | Google Form settings for the email sign-up, and your privacy contact email | Only if you make a new form or change your contact email |
+| `index.html` | Page layout, intro wording, page title and share-preview text | To change the intro, title or share text |
+| `js/app.js` | Checker logic: which facts to show for which answers, and the checklist lines | Rarely (see the placeholder list below) |
+| `css/styles.css` | Colors and layout, light and dark mode | Rarely |
+| `assets/` | Favicon, home-screen icon and the share preview image (`og-image.png`, drawn from `og-image.svg`) | To change the share image |
 | `tests/` | Automatic checks (optional, see "Testing") | No |
+
+**Quick updates**
+
+- **A fact changed:** edit its `text` and `src` in `js/facts.js` (see "How to edit a fact" below).
+- **Filled in a [To confirm] item:** see "How to fill in the [To confirm] items" below.
+- **New month:** change `AS_OF` at the top of `js/facts.js`.
+- **New year:** see "How to update deadlines next year" below.
+- **Abatement deadline extended:** see "The abatement countdown" below.
+- **New Google Form:** see "Connect or change the email sign-up" below.
+
+Edit on GitHub: open the file, tap the ✏️ pencil, make the change, then tap **Commit changes**. The live site updates in a minute or two.
 
 ---
 
@@ -165,6 +177,17 @@ To turn the sign-up off temporarily, set `formResponseUrl` to `"PLACEHOLDER_FORM
 
 ---
 
+## Share preview and icons
+
+When someone shares the link on Facebook, Messenger, Viber or X, they see `assets/og-image.png` with the title and description from the `og:` lines in `index.html`.
+
+- **To change the share text:** edit the `og:title` and `og:description` lines in `index.html`.
+- **To change the image:** edit the words in `assets/og-image.svg` (it's plain text), then convert it to a 1200×630 PNG with any SVG-to-PNG converter and save it as `assets/og-image.png`.
+- **If you move the site to your own domain:** update the web address in the `canonical`, `og:url` and `og:image` lines.
+- **Facebook keeps showing an old preview:** paste the link into Facebook's Sharing Debugger and click **Scrape Again**.
+
+---
+
 ## Publish on GitHub Pages
 
 1. On GitHub: **Settings → Pages**.
@@ -189,7 +212,13 @@ node tests/check-all-paths.js
 node tests/check-signup.js
 ```
 
-`check-all-paths.js` clicks through every combination of checker answers (540 paths) at phone (360px) and laptop (1280px) widths and checks each result for missing sections, unsourced facts, layout overflow, errors and unexpected network requests. `check-signup.js` checks the sign-up form's validation and confirms that only email and consent are sent (it intercepts the request, so nothing reaches your real form).
+```bash
+node tests/check-features.js
+```
+
+- `check-all-paths.js` clicks through every combination of checker answers (540 paths) at phone (360px), tablet (768px) and laptop (1280px) widths. It checks each result for missing sections, unsourced facts, layout overflow, errors and unexpected network requests.
+- `check-signup.js` checks the sign-up form's validation and confirms that only email and consent are sent. It intercepts the request, so nothing reaches your real form.
+- `check-features.js` checks the buttons and edge cases: Back (on the page and the phone's own Back button), Change my answers, Start over, double-taps, the theme and language buttons, copying the checklist, the FAQ, and keyboard use.
 
 ---
 

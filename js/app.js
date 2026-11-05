@@ -28,7 +28,7 @@
     opts = opts || {};
     let body = "<p>" + rich(f.text) + "</p>";
     if (f.table) {
-      body += '<table class="tier-table"><tbody>' + f.table.map(r =>
+      body += '<table class="tier-table"><caption class="sr-only">Taxpayer groups by gross sales</caption><tbody>' + f.table.map(r =>
         '<tr' + (opts.highlight === r[0] ? ' class="me"' : "") + '><th scope="row">' + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>"
       ).join("") + "</tbody></table>";
     }
@@ -122,12 +122,13 @@
     else document.documentElement.setAttribute("data-theme", theme);
     $("#themeLabel").textContent = theme[0].toUpperCase() + theme.slice(1);
     $("#themeIcon").textContent = theme === "light" ? "☀️" : theme === "dark" ? "🌙" : "🌓";
-    $("#themeToggle").setAttribute("aria-label", "Colour theme: " + $("#themeLabel").textContent + ". Tap to change.");
-    const dark = theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#161a1a" : "#fbf7f1");
+    $("#themeToggle").setAttribute("aria-label", "Color theme: " + $("#themeLabel").textContent + ". Tap to change.");
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
+      m.setAttribute("content", theme === "auto" ? m.dataset.auto : theme === "dark" ? "#161a1a" : "#fbf7f1");
+    });
   });
   // Placeholder for the future Filipino version.
-  $("#langToggle").addEventListener("click", () => toast("Filipino version coming soon. Abangan!"));
+  $("#langToggle").addEventListener("click", () => toast("Malapit na ang Filipino version. Abangan!"));
 
   /* ---------------- Checker ---------------- */
 
@@ -186,7 +187,7 @@
     {
       id: "vat",
       title: "Are you VAT-registered?",
-      help: s => s.reg === "none" ? "If you are not registered yet, choose \"No\"." : "Your Certificate of Registration (COR) lists your tax types.",
+      help: s => s.reg === "none" ? "If you are not registered yet, choose \"No\"." : "If you don't know, choose \"I'm not sure\".",
       options: [
         { v: "no", ico: "➖", label: "No" },
         { v: "yes", ico: "🧾", label: "Yes, I'm VAT-registered" },
@@ -211,7 +212,7 @@
   ];
 
   let state = {};
-  let history = [];
+  let trail = []; // previous step indexes, for Back
   let stepIndex = 0;
 
   const val = (x, s) => (typeof x === "function" ? x(s) : x);
@@ -225,7 +226,7 @@
   }
   const activeSteps = s => STEPS.filter(st => stepCounts(st, s));
 
-  function resetState() { state = { issues: [] }; history = []; stepIndex = 0; }
+  function resetState() { state = { issues: [] }; trail = []; stepIndex = 0; }
 
   function renderStep(focus) {
     const steps = activeSteps(state);
@@ -234,7 +235,7 @@
     const total = steps.length;
     $("#progressBar").style.width = Math.round((pos / total) * 100) + "%";
     $("#stepCount").textContent = "Question " + (pos + 1) + " of " + total;
-    $("#backBtn").hidden = history.length === 0;
+    $("#backBtn").hidden = trail.length === 0;
 
     let html = '<h3 tabindex="-1" id="stepTitle">' + esc(val(step.title, state)) + "</h3>";
     const help = val(step.help, state);
@@ -262,12 +263,77 @@
   }
 
   function nextStep() {
-    history.push(stepIndex);
     for (let i = stepIndex + 1; i < STEPS.length; i++) {
-      if (!STEPS[i].when || STEPS[i].when(state)) { stepIndex = i; renderStep(true); scrollToChecker(); return; }
+      if (!STEPS[i].when || STEPS[i].when(state)) {
+        trail.push(stepIndex);
+        stepIndex = i;
+        pushNav();
+        renderStep(true);
+        scrollToChecker();
+        return;
+      }
     }
+    pushNav();
     showResult();
   }
+
+  /* Phone/browser Back button: each new screen adds a browser history
+     entry, so Back goes to the previous question instead of leaving
+     the page. Nothing is written to the address bar or stored. */
+  let navDepth = 0;
+  let restarting = false;
+  try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch (e) { /* ignore */ }
+
+  function pushNav() {
+    try { history.pushState({ mtg: navDepth + 1 }, ""); navDepth++; } catch (e) { /* ignore */ }
+  }
+  function backOne() {
+    if (!$("#result").hidden) { hideResult(); return; }
+    if (!trail.length) return;
+    stepIndex = trail.pop();
+    renderStep(true);
+    scrollToChecker();
+  }
+  function goBack() {
+    if (navDepth > 0) history.back();
+    else backOne();
+  }
+  window.addEventListener("popstate", e => {
+    const d = (e.state && e.state.mtg) || 0;
+    if (restarting) { restarting = false; navDepth = d; doRestart(); return; }
+    if (d > navDepth) { history.go(navDepth - d); return; } // Forward: stay put
+    while (navDepth > d) { navDepth--; backOne(); }
+  });
+
+  function hideResult() {
+    $("#result").hidden = true;
+    $("#resultBody").innerHTML = "";
+    $("#checker").hidden = false;
+    renderStep(true);
+    $("#checker").scrollIntoView({ block: "start" });
+  }
+  function doRestart() {
+    resetState();
+    $("#result").hidden = true;
+    $("#resultBody").innerHTML = "";
+    $("#checker").hidden = false;
+    renderStep(true);
+    $("#checker").scrollIntoView({ block: "start" });
+  }
+  function restart() {
+    if (navDepth > 0) { restarting = true; history.go(-navDepth); }
+    else doRestart();
+  }
+
+  // Links to the checker while a result is showing go to the result instead.
+  document.addEventListener("click", e => {
+    const a = e.target.closest('a[href="#checker"]');
+    if (a && $("#checker").hidden) {
+      e.preventDefault();
+      $("#result").scrollIntoView({ block: "start" });
+      $("#resultTitle").focus({ preventScroll: true });
+    }
+  });
 
   function scrollToChecker() {
     const card = $("#checkerCard");
@@ -278,7 +344,9 @@
   $("#stepBody").addEventListener("click", e => {
     const step = STEPS[stepIndex];
     const opt = e.target.closest(".opt");
-    if (e.target.closest("[data-continue]")) { nextStep(); return; }
+    // e.detail > 1 is the 2nd tap of a double-tap: ignore it so it can't
+    // answer the next question by accident.
+    if (e.target.closest("[data-continue]")) { if (e.detail <= 1) nextStep(); return; }
     if (!opt) return;
     const v = opt.dataset.v;
     if (step.multi) {
@@ -294,6 +362,7 @@
       $("[data-continue]").disabled = sel.length === 0;
       $("#multiHint").textContent = sel.length ? "" : "Pick at least one option to continue.";
     } else {
+      if (e.detail > 1) return;
       state[step.id] = v;
       // Clear answers to steps that no longer apply (e.g. switched to corporation).
       if (step.id === "entity" && v === "corp") delete state.mixed;
@@ -301,11 +370,7 @@
     }
   });
 
-  $("#backBtn").addEventListener("click", () => {
-    if (!history.length) return;
-    stepIndex = history.pop();
-    renderStep(true);
-  });
+  $("#backBtn").addEventListener("click", goBack);
 
   /* ---------------- Result logic ---------------- */
 
@@ -407,7 +472,8 @@
     add("Check invoicing requirements: " + TBC, F.invoicing.src);
 
     if (ab.pill !== "no") {
-      add("Check that my unpaid basic tax and/or penalties are not more than ₱80,000 per taxable year, and that my case was open as of December 31, 2025.", F.abateWho.src);
+      add("Check that my covered basic tax liabilities and/or penalties are not more than ₱80,000 per taxable year.", F.abateWho.src);
+      add("Check that my case is a delinquent account, a preliminary or final assessment, or an open stop-filer case as of December 31, 2025.", F.abateCovers.src);
       add("File BIR Form 2121 in three copies with the RDO where I'm registered.", F.abateStep1.src);
       add("Pay the ₱5,000 abatement fee per approved application with BIR Form 0605 (ATC " + (ind ? "MC350 for individuals" : "MC351 for corporations") + ").", F.abateStep2.src);
       add("Keep my Certificate of Availment confirming my case is closed.", F.abateStep3.src);
@@ -419,9 +485,9 @@
 
   function countdownBig() {
     const t = timeLeft();
-    if (!t) return '<div class="countdown-big"><p class="label">The deadline (' + esc(ABATEMENT_DEADLINE.label) + ") has passed, unless it was extended.</p>" + srcHtml(ABATEMENT_DEADLINE.src) + "</div>";
+    if (!t) return '<div class="countdown-big" id="bigCountdown"><p class="label">The deadline (' + esc(ABATEMENT_DEADLINE.label) + ") has passed, unless it was extended.</p>" + srcHtml(ABATEMENT_DEADLINE.src) + "</div>";
     const u = (n, l) => '<div class="unit"><b>' + n + "</b><small>" + l + "</small></div>";
-    return '<div class="countdown-big" role="timer" aria-label="' + t.days + ' days left before the abatement deadline">' +
+    return '<div class="countdown-big" id="bigCountdown" role="timer" aria-label="' + t.days + ' days left before the abatement deadline">' +
       '<p class="label">Time left to apply</p>' +
       '<div class="units" aria-hidden="true">' + u(t.days, t.days === 1 ? "day" : "days") + u(t.hours, "hours") + u(t.mins, "mins") + "</div>" +
       "<p>" + rich(F.abateDeadline.text) + "</p>" + srcHtml(F.abateDeadline.src) + "</div>";
@@ -450,7 +516,7 @@
     // 1. Why
     let why = factsHtml(c.reasons, { highlight: c.highlight });
     if (s.mixed === "yes") why += factHtml("mixed");
-    if (c.vatNote) why += '<p class="help">You said you are VAT-registered. This guide only has a VAT rule for starting classifications of taxpayers registered in 2023 or 2024 before April 27, 2024, or who did not file for taxable year 2022. Confirm your classification with your RDO.</p>';
+    if (c.vatNote) why += '<p class="help">You said you are VAT-registered. The rules in this guide only link VAT registration to the starting classification of taxpayers who registered in 2023 or 2024 before April 27, 2024, or who did not file their annual ITR for taxable year 2022. Confirm your classification with your RDO.</p>';
     html += block("Why", why);
 
     // 2. Benefits
@@ -480,7 +546,7 @@
       abHtml += "<h4>Check these conditions</h4><ul class=\"condlist\">" +
         "<li>Gross sales not exceeding ₱3,000,000.</li>" +
         "<li>Covered basic tax liabilities and/or penalties of not more than ₱80,000 per taxable year.</li>" +
-        "<li>The case (delinquent account, assessment or stop-filer case) was open as of December 31, 2025.</li></ul>" + srcHtml(F.abateWho.src);
+        "<li>Your case is a delinquent account, a preliminary or final assessment (disputed or not), or an open stop-filer case as of December 31, 2025.</li></ul>" + srcHtml(F.abateWho.src);
       abHtml += "<h4>Steps</h4><ol class=\"steps\">" +
         ["abateStep1", "abateStep2", "abateStep3"].map(k => "<li>" + rich(F[k].text) + srcHtml(F[k].src) + "</li>").join("") + "</ol>";
       abHtml += factsHtml(["abateNoAudit", "abateFee"]);
@@ -561,21 +627,8 @@
       const ok = await copyText(checklistText());
       toast(ok ? "Checklist copied. Paste it in your notes!" : "Couldn't copy. Please select the list and copy it manually.");
     });
-    $("#changeBtn").addEventListener("click", () => {
-      $("#result").hidden = true;
-      $("#resultBody").innerHTML = "";
-      $("#checker").hidden = false;
-      renderStep(true);
-      $("#checker").scrollIntoView({ block: "start" });
-    });
-    $("#restartBtn").addEventListener("click", () => {
-      resetState();
-      $("#result").hidden = true;
-      $("#resultBody").innerHTML = "";
-      $("#checker").hidden = false;
-      renderStep(true);
-      $("#checker").scrollIntoView({ block: "start" });
-    });
+    $("#changeBtn").addEventListener("click", goBack);
+    $("#restartBtn").addEventListener("click", restart);
     wireSignup();
   }
 
@@ -603,7 +656,7 @@
       '<button type="submit" class="btn btn-primary btn-lg continue" id="suBtn">Sign me up</button>' +
       '<div id="suMsg" role="status" aria-live="polite"></div>' +
       "</form>" +
-      '<div class="privacy"><p><strong>Privacy:</strong> We collect only your email and your consent. We use them only to send you this guide\'s checklist and tax deadline reminders. Your checker answers are never sent. Your details are never sold or shared.</p>' +
+      '<div class="privacy"><p><strong>Privacy:</strong> We collect only your email address and your consent. They are saved in a Google Form run by Nice to Know. We use them only to email you about this guide and tax deadlines, including a reminder before ' + esc(ABATEMENT_DEADLINE.label) + '. Your checker answers are never sent. Your details are never sold or shared.</p>' +
       "<p>You can unsubscribe anytime. To have your details deleted, email " + contact + ".</p></div>" +
       "</section>";
   }
@@ -651,7 +704,7 @@
         // the request is sent we show success. Only a network failure errors.
         await fetch(CFG.formResponseUrl, { method: "POST", mode: "no-cors", body, signal: ctrl.signal, credentials: "omit", referrerPolicy: "no-referrer" });
         clearTimeout(timer);
-        showMsg("ok", "Salamat! You're signed up. Watch your inbox for your checklist and a reminder before " + ABATEMENT_DEADLINE.label + ".");
+        showMsg("ok", "Salamat! You're signed up. We'll email you before " + ABATEMENT_DEADLINE.label + ".");
         form.reset();
       } catch (err) {
         showMsg("bad", "Sorry, we couldn't sign you up just now. Please check your internet connection and try again. Your result above is still here.");
@@ -668,8 +721,9 @@
   renderSources();
   resetState();
   renderStep(false);
-  setInterval(renderTopCountdown, 60000);
-
-  // Expose for automated tests only (read-only snapshot).
-  window.__mtg = { getState: () => JSON.parse(JSON.stringify(state)) };
+  setInterval(() => {
+    renderTopCountdown();
+    const big = $("#bigCountdown");
+    if (big) big.outerHTML = countdownBig();
+  }, 60000);
 })();
